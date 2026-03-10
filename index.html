@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EXANI-II · Química Superior (Simulador oficial)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+        }
+        body {
+            background: #e3f0f5;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        .simulador {
+            max-width: 1100px;
+            width: 100%;
+            background: white;
+            border-radius: 40px;
+            box-shadow: 0 30px 50px rgba(0, 40, 60, 0.3);
+            overflow: hidden;
+        }
+        .cabecera {
+            background: #0a4b5e;
+            color: white;
+            padding: 28px 30px;
+            text-align: center;
+            border-bottom: 5px solid #ffaa33;
+        }
+        .cabecera h1 {
+            font-size: 2.3rem;
+            font-weight: 700;
+        }
+        .cabecera p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-top: 8px;
+        }
+        .contenido {
+            padding: 30px 35px;
+        }
+        .progreso {
+            background: #dae0ec;
+            height: 16px;
+            border-radius: 50px;
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+        .barra-progreso {
+            background: #ffaa33;
+            height: 100%;
+            width: 0%;
+            transition: width 0.2s;
+        }
+        .nav-pregunta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .badge-pregunta {
+            background: #0a4b5e;
+            color: white;
+            padding: 8px 25px;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            border: 1px solid #ffaa33;
+        }
+        .nav-botones {
+            display: flex;
+            gap: 15px;
+        }
+        .btn-nav {
+            background: white;
+            border: 2px solid #0a4b5e;
+            color: #0a4b5e;
+            font-weight: 600;
+            padding: 8px 25px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        .btn-nav:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        .btn-nav:hover:not(:disabled) {
+            background: #0a4b5e;
+            color: white;
+        }
+        .tarjeta-pregunta {
+            background: #f6faff;
+            border-radius: 30px;
+            padding: 20px 25px;
+            border: 1px solid #c7d3e8;
+            margin-bottom: 25px;
+        }
+        .pregunta-item {
+            background: white;
+            border-radius: 20px;
+            padding: 25px 30px;
+            margin-bottom: 20px;
+            border: 1px solid #b0c0db;
+        }
+        .num-pregunta {
+            background: #ffaa33;
+            color: #0a4b5e;
+            font-weight: 700;
+            display: inline-block;
+            padding: 6px 22px;
+            border-radius: 50px;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+        }
+        .texto-pregunta {
+            font-weight: 600;
+            font-size: 1.2rem;
+            margin-bottom: 25px;
+            color: #102331;
+            line-height: 1.5;
+        }
+        .opciones {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .opcion {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            background: #f0f5ff;
+            padding: 14px 24px;
+            border-radius: 40px;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: 0.1s;
+            font-size: 1.05rem;
+        }
+        .opcion:hover {
+            background: #e2ecfe;
+            border-color: #0a4b5e;
+        }
+        input[type="radio"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #ffaa33;
+        }
+        .acciones {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin: 20px 0 10px;
+        }
+        .btn-primario, .btn-secundario {
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            border: none;
+            border-radius: 60px;
+            cursor: pointer;
+            transition: 0.2s;
+            min-width: 220px;
+        }
+        .btn-primario {
+            background: #0a4b5e;
+            color: white;
+            box-shadow: 0 8px 15px rgba(10,75,94,0.3);
+        }
+        .btn-secundario {
+            background: white;
+            color: #0a4b5e;
+            border: 2px solid #0a4b5e;
+        }
+        .btn-primario:hover { background: #0e637a; transform: scale(1.02); }
+        .btn-secundario:hover { background: #e9f0fa; }
+        .panel-registro {
+            background: #f3f9ff;
+            border-radius: 40px;
+            padding: 30px;
+            border: 3px solid #0a4b5e;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .panel-registro h2 {
+            color: #0a4b5e;
+            margin-bottom: 20px;
+        }
+        .campo {
+            margin-bottom: 20px;
+            text-align: left;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .campo label {
+            display: block;
+            font-weight: 600;
+            color: #0a4b5e;
+            margin-bottom: 5px;
+        }
+        .campo input {
+            width: 100%;
+            padding: 12px 20px;
+            border-radius: 50px;
+            border: 2px solid #b0c0db;
+            font-size: 1rem;
+        }
+        .campo input:focus {
+            outline: none;
+            border-color: #ffaa33;
+        }
+        .btn-registro {
+            background: #0a4b5e;
+            color: white;
+            padding: 15px 50px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            border: none;
+            border-radius: 60px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .panel-resultados {
+            background: #f3f9ff;
+            border-radius: 40px;
+            padding: 30px;
+            border: 3px solid #0a4b5e;
+            margin-top: 20px;
+        }
+        .panel-resultados h2 {
+            color: #0a4b5e;
+            font-size: 2rem;
+            border-bottom: 4px solid #ffaa33;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+        .tabla-resultados {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .tabla-resultados th {
+            background: #0a4b5e;
+            color: white;
+            padding: 12px 5px;
+            font-size: 1rem;
+        }
+        .tabla-resultados td {
+            padding: 10px 5px;
+            text-align: center;
+            border-bottom: 1px solid #cfdaea;
+        }
+        .acierto {
+            background-color: #d8f0d8;
+            font-weight: 600;
+        }
+        .error {
+            background-color: #ffe0e0;
+        }
+        .puntaje-final {
+            font-size: 2.3rem;
+            font-weight: 800;
+            color: #0a4b5e;
+            background: #ffaa33;
+            display: inline-block;
+            padding: 12px 55px;
+            border-radius: 60px;
+            margin: 10px 0 20px;
+        }
+        .mensaje-exito {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 50px;
+            margin: 15px 0;
+            font-weight: 600;
+        }
+        .mensaje-error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 50px;
+            margin: 15px 0;
+            font-weight: 600;
+        }
+        .oculto {
+            display: none !important;
+        }
+        .centrado {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+<div class="simulador" id="app">
+    <div class="cabecera">
+        <h1>🧪 EXANI-II · Química Superior</h1>
+        <p>60 preguntas · Resultados en Google Sheets</p>
+    </div>
+    <div class="contenido">
+
+        <!-- Panel de registro inicial -->
+        <div id="panelRegistro" class="panel-registro">
+            <h2>📋 Registro para guardar resultados</h2>
+            <div class="campo">
+                <label>Nombre completo:</label>
+                <input type="text" id="inputNombre" placeholder="Ej. Ana García López">
+            </div>
+            <div class="campo">
+                <label>Correo electrónico:</label>
+                <input type="email" id="inputEmail" placeholder="ana@ejemplo.com">
+            </div>
+            <div id="mensajeRegistro"></div>
+            <button class="btn-registro" id="btnComenzar">Comenzar examen</button>
+        </div>
+
+        <!-- Barra de progreso -->
+        <div class="progreso oculto" id="progresoContainer">
+            <div class="barra-progreso" id="barraProgreso"></div>
+        </div>
+
+        <!-- MODO EXAMEN -->
+        <div id="modoExamen" class="oculto">
+            <div class="nav-pregunta">
+                <span class="badge-pregunta" id="preguntaIndicador">Pregunta 1/60</span>
+                <div class="nav-botones">
+                    <button class="btn-nav" id="btnAnterior" disabled>← Anterior</button>
+                    <button class="btn-nav" id="btnSiguiente">Siguiente →</button>
+                </div>
+            </div>
+
+            <div class="tarjeta-pregunta" id="tarjetaPreguntas">
+                <div id="contenedorPregunta"></div>
+            </div>
+
+            <div class="acciones">
+                <button class="btn-primario" id="btnFinalizar">📊 Finalizar y enviar resultados</button>
+                <button class="btn-secundario" id="btnReiniciarExamen">⟲ Nuevo intento</button>
+            </div>
+        </div>
+
+        <!-- PANEL DE RESULTADOS -->
+        <div id="panelResultados" class="panel-resultados oculto">
+            <h2>📈 Resultados del examen</h2>
+            <div id="mensajeEnvio"></div>
+            <table class="tabla-resultados" id="tablaDetalle">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Tu respuesta</th>
+                        <th>Correcta</th>
+                        <th>Evaluación</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaDetalleBody"></tbody>
+            </table>
+            <div class="centrado">
+                <span class="puntaje-final" id="puntajeTotal">0/60</span>
+            </div>
+            <div class="acciones">
+                <button class="btn-primario" id="btnNuevoIntento">⟲ Nuevo intento</button>
+                <button class="btn-secundario" id="btnFinalizarApp">✔ Finalizar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    // ==============================================================
+    // 60 PREGUNTAS DE QUÍMICA (basadas en el PDF)
+    // ==============================================================
+    const preguntas = [
+        { // 1
+            texto: "Es un ejemplo del objeto de estudio de la Química:",
+            opciones: [
+                "A) la energía que proporcionan los alimentos",
+                "B) la reproducción de los insectos",
+                "C) la explosión demográfica",
+                "D) la industrialización de un país"
+            ],
+            correcta: 0 // A
+        },
+        { // 2
+            texto: "Un fenómeno químico ocurre cuando:",
+            opciones: [
+                "A) el agua se evapora",
+                "B) el hielo seco se solidifica",
+                "C) un pez respira bajo el agua",
+                "D) un proyectil sigue una trayectoria parabólica"
+            ],
+            correcta: 2 // C (respiración es proceso químico)
+        },
+        { // 3
+            texto: "Sustancia pura formada por átomos similares:",
+            opciones: ["A) mezcla", "B) compuesto", "C) elemento", "D) molécula"],
+            correcta: 2 // C
+        },
+        { // 4
+            texto: "Clasifica los siguientes procesos como físicos o químicos: 1. Oxidación, 2. Fusión, 3. Reducción, 4. Combustión, 5. Evaporación, 6. Sublimación",
+            opciones: [
+                "A) 1: físico; 2,3,4,5,6: químico",
+                "B) 1,3,4: químico; 2,5,6: físico",
+                "C) 1,2,3: químico; 4,5,6: físico",
+                "D) 1,4: químico; 2,3,5,6: físico"
+            ],
+            correcta: 1 // B
+        },
+        { // 5
+            texto: "Combinación de dos o más sustancias en proporciones variables, conservan sus propiedades individuales y pueden separarse usando métodos físicos:",
+            opciones: ["A) compuesto", "B) sustancia pura", "C) mezcla", "D) elemento"],
+            correcta: 2 // C
+        },
+        { // 6
+            texto: "Las propiedades de un compuesto suelen ser _______ a las de los elementos que lo constituyen.",
+            opciones: ["A) complementarias", "B) similares", "C) parecidas", "D) distintas"],
+            correcta: 3 // D
+        },
+        { // 7
+            texto: "Método de separación de mezclas homogéneas líquidas basado en la diferencia de los puntos de ebullición de los componentes.",
+            opciones: ["A) Evaporación", "B) Destilación", "C) Cristalización", "D) Sublimación"],
+            correcta: 1 // B
+        },
+        { // 8
+            texto: "Proceso físico que se usa para separar a los componentes de mezclas heterogéneas, empleado para retirar sólidos insolubles no sedimentables del agua:",
+            opciones: ["A) decantación", "B) destilación", "C) filtración", "D) ósmosis"],
+            correcta: 2 // C
+        },
+        { // 9
+            texto: "Método físico empleado para la separación de los componentes disueltos del agua de mar:",
+            opciones: ["A) destilación", "B) evaporación", "C) decantación", "D) electrolisis"],
+            correcta: 0 // A
+        },
+        { // 10
+            texto: "En este estado de agregación las fuerzas de cohesión son nulas y la sustancia no tiene ni forma ni volumen definido.",
+            opciones: ["A) Sólido", "B) Líquido", "C) Gaseoso", "D) Plasmático"],
+            correcta: 2 // C
+        },
+        { // 11
+            texto: "Al cambio por el cual un sólido como el hielo seco, se transforma en un gas directamente, sin pasar por el estado líquido se le llama:",
+            opciones: ["A) fusión", "B) sublimación", "C) deposición", "D) ebullición"],
+            correcta: 1 // B
+        },
+        { // 12
+            texto: "Son partículas subatómicas:",
+            opciones: [
+                "A) protón, electrón y neutrón",
+                "B) iones, moléculas, electrones",
+                "C) cationes, aniones, radicales",
+                "D) iones, electrones, neutrones"
+            ],
+            correcta: 0 // A
+        },
+        { // 13
+            texto: "Fenómeno que presentan algunos núcleos inestables al desintegrarse reduciendo su masa y emitiendo energía.",
+            opciones: ["A) Radiactividad", "B) Energía radiante", "C) Potencial de ionización", "D) Electronegatividad"],
+            correcta: 0 // A
+        },
+        { // 14
+            texto: "¿Quién es el autor de la Teoría Atómica de la Materia?",
+            opciones: ["A) Thomson", "B) Rutherford", "C) Bohr", "D) Dalton"],
+            correcta: 3 // D
+        },
+        { // 15
+            texto: "Científico que propuso la existencia del núcleo del átomo al elaborar su modelo.",
+            opciones: ["A) Thomson", "B) Rutherford", "C) Bohr", "D) Dalton"],
+            correcta: 1 // B
+        },
+        { // 16
+            texto: "Se refiere a la suma del número de protones y de neutrones contenidos en el núcleo de un isótopo.",
+            opciones: ["A) Masa atómica", "B) Valencia", "C) Covalencia", "D) Número de masa"],
+            correcta: 3 // D
+        },
+        { // 17
+            texto: "Parte del modelo atómico actual que representa la distribución de los electrones en los subniveles de energía.",
+            opciones: ["A) Masa", "B) Número cuántico", "C) Modelo de Bohr", "D) Configuración electrónica"],
+            correcta: 3 // D
+        },
+        { // 18
+            texto: "Son elementos químicos con la capacidad de conducir el calor y la electricidad, dúctiles y tenaces.",
+            opciones: ["A) Metaloides", "B) Metales", "C) No metales", "D) Radioisótopos"],
+            correcta: 1 // B
+        },
+        { // 19
+            texto: "Son átomos de elementos distintos, con el mismo número de masa.",
+            opciones: ["A) Isóbaros", "B) Isótopos", "C) Isomorfos", "D) Isómeros"],
+            correcta: 0 // A
+        },
+        { // 20
+            texto: "Es el conjunto de operaciones encaminadas a la extracción, preparación y tratamiento de metales.",
+            opciones: ["A) Siderurgia", "B) Petroquímica", "C) Metalurgia", "D) Minería"],
+            correcta: 2 // C
+        },
+        { // 21
+            texto: "Número cuántico que identifica a los subniveles de energía de un átomo.",
+            opciones: ["A) n", "B) l", "C) m", "D) s"],
+            correcta: 1 // B
+        },
+        { // 22
+            texto: "¿Cuál es la configuración electrónica correcta para el fósforo, cuyo número atómico es 15?",
+            opciones: [
+                "A) 1s² 2s² 2p⁶ 3s² 3p⁶",
+                "B) 1s² 2s² 2p⁶ 3s² 3p³",
+                "C) 1s² 2s² 2p⁶ 3s² 3p⁵",
+                "D) 1s² 2s² 2p⁶ 3s² 3p⁴"
+            ],
+            correcta: 1 // B
+        },
+        { // 23
+            texto: "¿A qué familia y periodo pertenece el elemento cuya configuración electrónica es 1s² 2s² 2p⁶ 3s² 3p⁶ 4s²?",
+            opciones: [
+                "A) Familia 3 y periodo 4",
+                "B) Familia 2 y periodo 4",
+                "C) Familia 4 y periodo 3",
+                "D) Familia 4 y periodo 2"
+            ],
+            correcta: 1 // B (alcalinotérreo, periodo 4)
+        },
+        { // 24
+            texto: "Es uno de los postulados de la Teoría atómica de Dalton:",
+            opciones: [
+                "A) toda la materia está formada por moléculas diatómicas",
+                "B) los átomos son divisibles",
+                "C) en las reacciones químicas los átomos se reacomodan",
+                "D) todos los átomos son iguales en todas sus propiedades"
+            ],
+            correcta: 2 // C
+        },
+        { // 25
+            texto: "Número cuántico que representa el nivel de energía en el que se localiza el electrón:",
+            opciones: ["A) l", "B) n", "C) m", "D) s"],
+            correcta: 1 // B
+        },
+        { // 26
+            texto: "Número máximo de electrones que pueden estar contenidos en el subnivel f de energía:",
+            opciones: ["A) 2", "B) 6", "C) 10", "D) 14"],
+            correcta: 3 // D
+        },
+        { // 27
+            texto: "¿Cuál es la configuración electrónica para el átomo de potasio, cuyo número atómico es 19?",
+            opciones: [
+                "A) 1s² 2s² 2p⁶ 3s² 3p⁶ 4s¹",
+                "B) 1s² 2s² 2p⁶ 3s² 3p⁶ 3d¹",
+                "C) 1s² 2s² 2p⁶ 3s² 3p⁶ 4s²",
+                "D) 1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d¹"
+            ],
+            correcta: 0 // A
+        },
+        { // 28
+            texto: "¿A qué familia pertenece el elemento cuya configuración electrónica es: 1s² 2s² 2p⁶ 3s² 3p⁵?",
+            opciones: ["A) IVA", "B) VIA", "C) IIIA", "D) VIIA"],
+            correcta: 3 // D (halógeno)
+        },
+        { // 29
+            texto: "¿Cuál es el número máximo de electrones que pueden estar contenidos en el tercer nivel de energía?",
+            opciones: ["A) 2", "B) 8", "C) 18", "D) 32"],
+            correcta: 2 // C (2n² = 2*9 = 18)
+        },
+        { // 30
+            texto: "Representa el número de protones contenidos en el núcleo del átomo:",
+            opciones: ["A) peso atómico", "B) número atómico", "C) radio atómico", "D) valencia"],
+            correcta: 1 // B
+        },
+        { // 31
+            texto: "Es el promedio de las masas de todos los isótopos de un elemento:",
+            opciones: ["A) masa atómica", "B) número atómico", "C) radio atómico", "D) oxidación"],
+            correcta: 0 // A
+        },
+        { // 32
+            texto: "Carga eléctrica representativa que indica la capacidad de combinación química de un átomo con otro:",
+            opciones: ["A) número de oxidación", "B) número atómico", "C) número cuántico principal", "D) número cuántico azimutal"],
+            correcta: 0 // A
+        },
+        { // 33
+            texto: "La ley periódica de los elementos establece que:",
+            opciones: [
+                "A) las propiedades de los elementos son funciones periódicas de los pesos atómicos",
+                "B) las propiedades de los elementos son funciones periódicas de los números atómicos",
+                "C) los radios atómicos son funciones periódicas de los números atómicos",
+                "D) los números de oxidación son funciones periódicas de los pesos atómicos"
+            ],
+            correcta: 1 // B
+        },
+        { // 34
+            texto: "Son ejemplos de elementos con brillo, tenaces, conductores de la electricidad y del calor, con altos puntos de fusión y de ebullición:",
+            opciones: [
+                "A) Si, Xe, F, S",
+                "B) Na, C, O, P",
+                "C) B, Si, Po, Cl",
+                "D) Cu, Fe, Au, Ag"
+            ],
+            correcta: 3 // D (metales)
+        },
+        { // 35
+            texto: "Son elementos ordenados de manera ascendente de acuerdo con sus números atómicos:",
+            opciones: [
+                "A) B, C, N, O",
+                "B) H, Na, Li, K",
+                "C) Ra, Ba, Sr, Ca",
+                "D) Au, Cu, Hg, Ag"
+            ],
+            correcta: 0 // A (B=5, C=6, N=7, O=8)
+        },
+        { // 36
+            texto: "Los enlaces químicos se forman por la interacción de...",
+            opciones: [
+                "A) los subniveles de energía de los electrones internos",
+                "B) los electrones diferenciales de dos átomos",
+                "C) los orbitales de los electrones de valencia",
+                "D) átomos inestables altamente reactivos"
+            ],
+            correcta: 2 // C
+        },
+        { // 37
+            texto: "Se definen como regiones del átomo con energía cuantizada en los que se ubican los electrones.",
+            opciones: ["A) Regiones del espacio probabilísticas energéticas", "B) Orbitales", "C) Niveles de energía", "D) Orbitales p y d"],
+            correcta: 1 // B
+        },
+        { // 38
+            texto: "Es la propiedad de los elementos que se refiere a la fuerza de atracción que estos ejercen sobre los electrones.",
+            opciones: ["A) Valencia", "B) Radio atómico", "C) Densidad", "D) Electronegatividad"],
+            correcta: 3 // D
+        },
+        { // 39
+            texto: "Enlace químico que se caracteriza por la transferencia de electrones entre los átomos que intervienen.",
+            opciones: ["A) De London", "B) Covalente polar", "C) Covalente no polar", "D) Iónico"],
+            correcta: 3 // D
+        },
+        { // 40
+            texto: "Tipo de enlace químico por el cual los átomos que intervienen comparten pares de electrones.",
+            opciones: ["A) Electrovalente", "B) Dipolo-dipolo", "C) Covalente", "D) Iónico"],
+            correcta: 2 // C
+        },
+        { // 41
+            texto: "Es una propiedad de las sustancias iónicas:",
+            opciones: [
+                "A) insolubles en agua y en la mayoría de los solventes polares",
+                "B) sólidos cristalinos con altos puntos de fusión",
+                "C) incluyen prácticamente a todos los compuestos orgánicos",
+                "D) casi todos son combustibles"
+            ],
+            correcta: 1 // B
+        },
+        { // 42
+            texto: "Tipo de enlace que presentan los átomos en la molécula de agua.",
+            opciones: ["A) De London", "B) Covalente polar", "C) Covalente no polar", "D) Iónico"],
+            correcta: 1 // B
+        },
+        { // 43
+            texto: "Tipo de enlace en el cual uno solo de los átomos es el que aporta el par de electrones para formar el enlace:",
+            opciones: ["A) electrovalente", "B) covalente polar", "C) covalente no polar", "D) covalente coordinado"],
+            correcta: 3 // D
+        },
+        { // 44
+            texto: "Son fuerzas intermoleculares que se presentan entre moléculas polares que involucran átomos muy electronegativos, son las causantes de que el agua presente un punto de ebullición alto en relación con su peso molecular.",
+            opciones: ["A) Fuerzas de Van der Waals", "B) Puentes de hidrógeno", "C) Fuerzas de London", "D) Fuerzas dipolo-dipolo inducido"],
+            correcta: 1 // B
+        },
+        { // 45
+            texto: "Interacciones débiles que se presentan en moléculas no polares, causadas por una distribución temporal asimétrica de los electrones.",
+            opciones: ["A) Enlaces covalentes no polares", "B) Puentes de hidrógeno", "C) Fuerzas de London", "D) Fuerzas dipolo-dipolo inducido"],
+            correcta: 2 // C
+        },
+        { // 46
+            texto: "¿Cuál es el número de oxidación del fósforo en el compuesto Na₃PO₄?",
+            opciones: ["A) -5", "B) +5", "C) -2", "D) +3"],
+            correcta: 1 // B
+        },
+        { // 47
+            texto: "¿Cuál es el número de oxidación del Fe en el compuesto FeSO₄?",
+            opciones: ["A) +3", "B) -3", "C) +2", "D) -2"],
+            correcta: 2 // C
+        },
+        { // 48
+            texto: "¿Qué tipo de reacción representa la siguiente ecuación? H₂CO₃ → CO₂ + H₂O",
+            opciones: ["A) Síntesis", "B) Condensación", "C) Descomposición", "D) Sustitución simple"],
+            correcta: 2 // C
+        },
+        { // 49
+            texto: "¿Qué tipo de reacción es la que representa la siguiente ecuación química? LiOH + Mg → Mg(OH)₂ + Li",
+            opciones: ["A) Sustitución doble", "B) Sustitución simple", "C) Descomposición", "D) Síntesis"],
+            correcta: 1 // B
+        },
+        { // 50
+            texto: "Es la rapidez con la cual los reactivos se transforman en productos.",
+            opciones: ["A) Equilibrio químico", "B) Principio de Le Chatelier", "C) Velocidad de decaimiento", "D) Velocidad de reacción"],
+            correcta: 3 // D
+        },
+        { // 51
+            texto: "¿Cuál de las siguientes ecuaciones se encuentra balanceada?",
+            opciones: [
+                "A) H₂SO₄ + 2Al(OH)₃ → Al₂(SO₄)₃ + 3H₂O",
+                "B) 2KMnO₄ → K₂O + O₂ + 2MnO₂",
+                "C) Pb(OH)₄ + 2H₂SO₃ → Pb(SO₃)₂ + 4H₂O",
+                "D) 2NH₄NO₃ → 2NH₃ + 3H₂O"
+            ],
+            correcta: 0 // A
+        },
+        { // 52
+            texto: "La reacción de neutralización entre un ácido y una base es un proceso espontáneo, por lo cual...",
+            opciones: [
+                "A) la entalpía permanece constante",
+                "B) la entalpía es cero",
+                "C) el cambio de entalpía es negativo",
+                "D) el cambio de entalpía es positivo"
+            ],
+            correcta: 2 // C
+        },
+        { // 53
+            texto: "El número de Avogadro 6.022 × 10²³ se relaciona con el concepto de...",
+            opciones: ["A) pH", "B) concentración", "C) mol", "D) ión"],
+            correcta: 2 // C
+        },
+        { // 54
+            texto: "Calcula el número de moles contenidos en 275g de H₂SO₄ (PM = 98 g/mol).",
+            opciones: ["A) 2.8 mol", "B) 0.35 mol", "C) 26,950 mol", "D) 177 mol"],
+            correcta: 0 // A (275/98 ≈ 2.8)
+        },
+        { // 55
+            texto: "¿Cuál es la masa en gramos contenida en 1.75 mol de Al₂(SO₄)₃ (PM = 342 g/mol)?",
+            opciones: ["A) 598.5 g", "B) 195.4 g", "C) 0.005 g", "D) 343.75 g"],
+            correcta: 0 // A (1.75 × 342 = 598.5)
+        },
+        { // 56
+            texto: "La cantidad de moles de soluto que se disuelven en un litro de solución, corresponde a la definición de:",
+            opciones: ["A) molaridad", "B) normalidad", "C) peso molecular", "D) mol"],
+            correcta: 0 // A
+        },
+        { // 57
+            texto: "Hibridación que el carbono presenta en los compuestos saturados.",
+            opciones: ["A) sp", "B) sp²", "C) sp³", "D) sp⁴"],
+            correcta: 2 // C
+        },
+        { // 58
+            texto: "Son compuestos, cuya fuente principal es el petróleo y que están formados únicamente por carbono e hidrógeno.",
+            opciones: ["A) Aromáticos", "B) Alcanos", "C) Alquenos", "D) Hidrocarburos"],
+            correcta: 3 // D
+        },
+        { // 59
+            texto: "Se usan como combustibles y disolventes de grasas, aceites y ceras.",
+            opciones: ["A) Alcanos", "B) Alquenos", "C) Alquinos", "D) Aromáticos"],
+            correcta: 0 // A
+        },
+        { // 60
+            texto: "Son ejemplos de radicales:",
+            opciones: [
+                "A) alcanos, alquenos y alquinos",
+                "B) secbutil, terbutil y etil",
+                "C) isopreno, pvc y ozono",
+                "D) sp³, sp² y sp"
+            ],
+            correcta: 1 // B
+        }
+    ];
+
+    // ==============================================================
+    // CONFIGURACIÓN GOOGLE SHEETS
+    // ==============================================================
+    // IMPORTANTE: Reemplaza con tu URL de Apps Script
+    const URL_GOOGLE_APPS_SCRIPT = 'https://script.google.com/macros/s/TU_ID_AQUI/exec';
+
+    // Estado
+    let preguntaActual = 0;
+    let respuestas = Array(60).fill(null);
+    let datosUsuario = { nombre: '', email: '' };
+
+    // Elementos DOM
+    const panelRegistro = document.getElementById('panelRegistro');
+    const progresoContainer = document.getElementById('progresoContainer');
+    const modoExamen = document.getElementById('modoExamen');
+    const panelResultados = document.getElementById('panelResultados');
+    const inputNombre = document.getElementById('inputNombre');
+    const inputEmail = document.getElementById('inputEmail');
+    const btnComenzar = document.getElementById('btnComenzar');
+    const mensajeRegistro = document.getElementById('mensajeRegistro');
+    const mensajeEnvio = document.getElementById('mensajeEnvio');
+    const btnAnterior = document.getElementById('btnAnterior');
+    const btnSiguiente = document.getElementById('btnSiguiente');
+    const btnFinalizar = document.getElementById('btnFinalizar');
+    const btnReiniciarExamen = document.getElementById('btnReiniciarExamen');
+    const btnNuevoIntento = document.getElementById('btnNuevoIntento');
+    const btnFinalizarApp = document.getElementById('btnFinalizarApp');
+    const preguntaIndicador = document.getElementById('preguntaIndicador');
+    const contenedorPregunta = document.getElementById('contenedorPregunta');
+    const barraProgreso = document.getElementById('barraProgreso');
+    const tablaDetalleBody = document.getElementById('tablaDetalleBody');
+    const puntajeTotal = document.getElementById('puntajeTotal');
+
+    // Funciones
+    function guardarRespuestaActual() {
+        const radios = contenedorPregunta.querySelectorAll('input[type="radio"]:checked');
+        if (radios.length > 0) {
+            respuestas[preguntaActual] = parseInt(radios[0].value);
+        }
+    }
+
+    function actualizarBarra() {
+        const respondidas = respuestas.filter(r => r !== null).length;
+        barraProgreso.style.width = (respondidas / 60 * 100) + '%';
+    }
+
+    function renderizarPregunta() {
+        const p = preguntas[preguntaActual];
+        const seleccionada = respuestas[preguntaActual];
+        
+        let html = `<div class="pregunta-item">`;
+        html += `<div class="num-pregunta">Pregunta ${preguntaActual+1} de 60</div>`;
+        html += `<div class="texto-pregunta">${p.texto}</div>`;
+        html += `<div class="opciones">`;
+        
+        p.opciones.forEach((opcion, idx) => {
+            html += `<label class="opcion">`;
+            html += `<input type="radio" name="respuesta" value="${idx}" data-pregunta="${preguntaActual}" ${seleccionada === idx ? 'checked' : ''}>`;
+            html += opcion;
+            html += `</label>`;
+        });
+        
+        html += `</div></div>`;
+        contenedorPregunta.innerHTML = html;
+
+        preguntaIndicador.textContent = `Pregunta ${preguntaActual+1}/60`;
+        btnAnterior.disabled = (preguntaActual === 0);
+        btnSiguiente.disabled = (preguntaActual === 59);
+        actualizarBarra();
+    }
+
+    function calcularResultados() {
+        let aciertos = 0;
+        for (let i = 0; i < 60; i++) {
+            if (respuestas[i] === preguntas[i].correcta) aciertos++;
+        }
+        return aciertos;
+    }
+
+    async function enviarResultados() {
+        const aciertos = calcularResultados();
+        const porcentaje = ((aciertos / 60) * 100).toFixed(1);
+        
+        const datos = {
+            nombre: datosUsuario.nombre,
+            email: datosUsuario.email,
+            aciertos: aciertos,
+            total: 60,
+            porcentaje: porcentaje,
+            respuestas: respuestas.map(r => r !== null ? r : -1)
+        };
+
+        try {
+            await fetch(URL_GOOGLE_APPS_SCRIPT, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(datos)
+            });
+            mensajeEnvio.innerHTML = '<div class="mensaje-exito">✅ Resultados enviados correctamente</div>';
+        } catch (error) {
+            mensajeEnvio.innerHTML = '<div class="mensaje-error">❌ Error al enviar. Los resultados se muestran a continuación.</div>';
+        }
+    }
+
+    function mostrarResultados() {
+        guardarRespuestaActual();
+        modoExamen.classList.add('oculto');
+        panelResultados.classList.remove('oculto');
+
+        let aciertos = 0;
+        let filas = '';
+        for (let i = 0; i < 60; i++) {
+            const user = respuestas[i];
+            const correcta = preguntas[i].correcta;
+            const letraUser = user !== null ? String.fromCharCode(65 + user) : '—';
+            const letraCorrecta = String.fromCharCode(65 + correcta);
+            const clase = (user === correcta) ? 'acierto' : 'error';
+            if (user === correcta) aciertos++;
+            
+            filas += `<tr>`;
+            filas += `<td>${i+1}</td>`;
+            filas += `<td>${letraUser}</td>`;
+            filas += `<td>${letraCorrecta}</td>`;
+            filas += `<td class="${clase}">${user === correcta ? '✓' : '✗'}</td>`;
+            filas += `</tr>`;
+        }
+        tablaDetalleBody.innerHTML = filas;
+        puntajeTotal.textContent = `${aciertos}/60`;
+
+        enviarResultados();
+    }
+
+    function reiniciarSimulacro() {
+        respuestas = Array(60).fill(null);
+        preguntaActual = 0;
+        panelRegistro.classList.remove('oculto');
+        progresoContainer.classList.add('oculto');
+        modoExamen.classList.add('oculto');
+        panelResultados.classList.add('oculto');
+        mensajeRegistro.innerHTML = '';
+        mensajeEnvio.innerHTML = '';
+    }
+
+    function comenzarExamen() {
+        const nombre = inputNombre.value.trim();
+        const email = inputEmail.value.trim();
+        
+        if (!nombre || !email) {
+            mensajeRegistro.innerHTML = '<div class="mensaje-error">❌ Completa todos los campos</div>';
+            return;
+        }
+        if (!email.includes('@') || !email.includes('.')) {
+            mensajeRegistro.innerHTML = '<div class="mensaje-error">❌ Correo inválido</div>';
+            return;
+        }
+        
+        datosUsuario = { nombre, email };
+        panelRegistro.classList.add('oculto');
+        progresoContainer.classList.remove('oculto');
+        modoExamen.classList.remove('oculto');
+        renderizarPregunta();
+    }
+
+    // Event listeners
+    btnComenzar.addEventListener('click', comenzarExamen);
+
+    btnAnterior.addEventListener('click', () => {
+        guardarRespuestaActual();
+        if (preguntaActual > 0) {
+            preguntaActual--;
+            renderizarPregunta();
+        }
+    });
+
+    btnSiguiente.addEventListener('click', () => {
+        guardarRespuestaActual();
+        if (preguntaActual < 59) {
+            preguntaActual++;
+            renderizarPregunta();
+        }
+    });
+
+    btnFinalizar.addEventListener('click', mostrarResultados);
+    btnReiniciarExamen.addEventListener('click', reiniciarSimulacro);
+    btnNuevoIntento.addEventListener('click', reiniciarSimulacro);
+    btnFinalizarApp.addEventListener('click', () => alert('Simulador finalizado. ¡Gracias por practicar!'));
+
+    document.addEventListener('change', (e) => {
+        if (e.target.matches('input[type="radio"]')) {
+            respuestas[preguntaActual] = parseInt(e.target.value);
+            actualizarBarra();
+        }
+    });
+
+    // Inicializar
+    panelRegistro.classList.remove('oculto');
+    progresoContainer.classList.add('oculto');
+    modoExamen.classList.add('oculto');
+    panelResultados.classList.add('oculto');
+})();
+</script>
+</body>
+</html>
